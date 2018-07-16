@@ -1,6 +1,8 @@
 <?php
 
-use Framework\Http\Request;
+use Zend\Diactoros\Response\SapiStreamEmitter;
+use Zend\Diactoros\Response\HtmlResponse;
+use Zend\Diactoros\ServerRequestFactory;
 
 chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
@@ -14,6 +16,11 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+/*
+|--------------------------------------------------------------------------
+| Initialization section
+|--------------------------------------------------------------------------
+*/
 function getLang(array $get, array $cookie, array $session, array $server, $default = 'en') {
     if (!empty($get['lang'])) {
         return $get['lang'];
@@ -36,16 +43,30 @@ function getLang(array $get, array $cookie, array $session, array $server, $defa
 
 session_start();
 
-$request = new Request();
+$request = ServerRequestFactory::fromGlobals();
 
-//$request->getMethod();
-//$request->getBody();
-
+/*
+|--------------------------------------------------------------------------
+| Action section
+|--------------------------------------------------------------------------
+*/
 $name = $request->getQueryParams()['name'] ?? 'Guest';
 
 $lang = getLang($_GET, $_COOKIE, $_SESSION, $_SERVER);
 
-header('X-Developer: Vitasik');
+$contentBody = '';
+$contentBody .= 'Hello, ' . $name . PHP_EOL;
+$contentBody .= 'Your lang, ' . $lang . PHP_EOL;
 
-echo 'Hello, ' . $name . PHP_EOL;
-echo 'Your lang, ' . $lang . PHP_EOL;
+
+$response = (new HtmlResponse($contentBody))
+    ->withHeader('X-Developer', 'Vitasik');
+
+/*
+|--------------------------------------------------------------------------
+| Sending section
+|--------------------------------------------------------------------------
+*/
+
+$sender = new SapiStreamEmitter();
+$sender->emit($response);
