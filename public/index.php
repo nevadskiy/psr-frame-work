@@ -1,6 +1,6 @@
 <?php
 
-use Zend\Diactoros\Response\SapiStreamEmitter;
+use Zend\Diactoros\Response\SapiEmitter;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -47,6 +47,20 @@ $request = ServerRequestFactory::fromGlobals();
 
 /*
 |--------------------------------------------------------------------------
+| Initialization section
+|--------------------------------------------------------------------------
+*/
+if (preg_match('#json#i', $request->getHeader('Content-Type'))) {
+    $request = $request->withParsedBody(json_encode($request->getBody()->getContents()));
+}
+
+// How body parsing works
+// 1. $request->getBody();
+// 2. file_get_contents('php://input');
+// 3. $request->getParsedBody();
+
+/*
+|--------------------------------------------------------------------------
 | Action section
 |--------------------------------------------------------------------------
 */
@@ -59,6 +73,12 @@ $contentBody .= 'Hello, ' . $name . PHP_EOL;
 $contentBody .= 'Your lang, ' . $lang . PHP_EOL;
 
 
+/*
+|--------------------------------------------------------------------------
+| Postprocessing
+|--------------------------------------------------------------------------
+*/
+
 $response = (new HtmlResponse($contentBody))
     ->withHeader('X-Developer', 'Vitasik');
 
@@ -68,5 +88,5 @@ $response = (new HtmlResponse($contentBody))
 |--------------------------------------------------------------------------
 */
 
-$sender = new SapiStreamEmitter();
+$sender = new SapiEmitter();
 $sender->emit($response);
