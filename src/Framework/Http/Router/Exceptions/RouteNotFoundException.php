@@ -7,10 +7,9 @@ class RouteNotFoundException extends \LogicException
     private $name;
     private $attributes;
 
-    public function __construct(string $name, array $attributes)
+    public function __construct(string $name, array $attributes, \Throwable $previous = null)
     {
-        parent::__construct('Route "' . $name . '" not found.');
-
+        parent::__construct('Route "' . $name . '" not found.', 0, $previous);
         $this->name = $name;
         $this->attributes = $attributes;
     }

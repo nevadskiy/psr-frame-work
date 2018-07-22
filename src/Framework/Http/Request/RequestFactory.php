@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http;
+namespace Framework\Http\Request;
 
 class RequestFactory
 {

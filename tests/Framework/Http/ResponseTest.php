@@ -3,9 +3,7 @@
 namespace Tests\Framework\Http;
 
 use PHPUnit\Framework\TestCase;
-use Framework\Http\Response;
-
-
+use Framework\Http\Response\Response;
 
 class ResponseTest extends TestCase
 {

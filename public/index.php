@@ -1,13 +1,14 @@
 <?php
 
 use Zend\Diactoros\Response\SapiEmitter;
-use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response\JsonResponse;
-use Psr\Http\Message\ServerRequestInterface;
 use Framework\Http\Router\RouteCollection;
-use Framework\Http\Router\Router;
+use Framework\Http\Router\AuraRouterAdapter;
 use Framework\Http\Router\Exceptions\RequestNotMatchedException;
+use App\Http\Action;
+use Framework\Http\ActionResolver;
+
 
 chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
@@ -50,69 +51,35 @@ session_start();
 
 /*
 |--------------------------------------------------------------------------
-| Initialization section
+| Routes
 |--------------------------------------------------------------------------
 */
-//if (preg_match('#json#i', $request->getHeader('Content-Type'))) {
-//    $request = $request->withParsedBody(json_encode($request->getBody()->getContents()));
-//}
 
-// How body parsing works
-// 1. $request->getBody();
-// 2. file_get_contents('php://input');
-// 3. $request->getParsedBody();
+//$routes = new RouteCollection();
+//
+//$routes->get('home', '/', Action\HomeAction::class);
+//$routes->get('about', '/about', Action\AboutAction::class);
+//$routes->get('blog', '/blog', Action\Blog\IndexAction::class);
+//$routes->get('blog_show', '/blog/{id}', Action\Blog\ShowAction::class, ['id' => '\d+']);
+//$router = new \Framework\Http\Router\SimpleRouter($routes);
+//$resolver = new ActionResolver();
+
+$aura = new Aura\Router\RouterContainer();
+$routes = $aura->getMap();
+
+$routes->get('home', '/', Action\HomeAction::class);
+$routes->get('about', '/about', Action\AboutAction::class);
+$routes->get('blog', '/blog', Action\Blog\IndexAction::class);
+$routes->get('blog_show', '/blog/{id}', Action\Blog\ShowAction::class)->tokens(['id' => '\d+']);
+
+$router = new AuraRouterAdapter($aura);
+$resolver = new ActionResolver();
 
 /*
 |--------------------------------------------------------------------------
-| Action section
+| Running
 |--------------------------------------------------------------------------
 */
-
-// First parse url without get params
-// Next Route section is a lot of IF-STATEMENTS for url request
-// after request process
-
-$routes = new RouteCollection();
-
-$routes->get('home', '/', function (ServerRequestInterface $request) {
-
-    $lang = $request->getAttribute('lang');
-    $name = $request->getQueryParams()['name'] ?? 'Guest';
-    $contentBody = '';
-    $contentBody .= 'Hello, ' . $name . PHP_EOL;
-    $contentBody .= 'Your lang, ' . $lang . PHP_EOL;
-
-    return (new HtmlResponse($contentBody))
-        ->withHeader('X-Developer', 'Vitasik');
-});
-
-$routes->get('about', '/about', function() {
-    return new HtmlResponse('Simple Site');
-});
-
-$routes->get('blog', '/blog', function () {
-    return new JsonResponse([
-        ['id' => 2, 'title' => 'The Second Post'],
-        ['id' => 1, 'title' => 'The First Post'],
-    ]);
-});
-
-$routes->get('blog_show', '/blog/{id}', function(ServerRequestInterface $request) {
-    $id = $request->getAttribute('id');
-    if ($id > 5) {
-        return new JsonResponse(['error' => 'Undefined page'], 404);
-    }
-    return new JsonResponse(['id' => $id, 'title' => 'The Post #' . $id]);
-}, ['id' => '\d+']);
-
-$router = new Router($routes);
-
-/**
- * Running
- *
- */
-
-
 $request = ServerRequestFactory::fromGlobals();
 $request = $request->withAttribute('lang', getLang($_GET, $_COOKIE, $_SESSION, $_SERVER));
 
@@ -123,7 +90,7 @@ try {
         $request = $request->withAttribute($attribute, $value);
     }
 
-    $action = $result->getHandler();
+    $action = $resolver->resolve($result->getHandler());
     $response = $action($request);
 } catch (RequestNotMatchedException $e) {
     $response = new JsonResponse(['error' => 'Undefined page'], 404);

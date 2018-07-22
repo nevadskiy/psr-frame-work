@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http;
+namespace Framework\Http\Request;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -76,6 +76,15 @@ class Request implements ServerRequestInterface
     }
 
     /**
+     *
+     * if (preg_match('#json#i', $request->getHeader('Content-Type'))) {
+     * $request = $request->withParsedBody(json_encode($request->getBody()->getContents()));
+     *
+     * How body parsing works?
+     * 1. $request->getBody();
+     * 2. file_get_contents('php://input');
+     * 3. $request->getParsedBody();
+     *
      * @return array|null
      */
     public function getParsedBody(): ?array

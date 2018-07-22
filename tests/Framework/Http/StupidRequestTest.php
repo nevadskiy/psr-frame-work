@@ -2,9 +2,8 @@
 
 namespace Tests\Framework\Http;
 
-use Framework\Http\StupidRequest;
+use Framework\Http\Request\StupidRequest;
 use PHPUnit\Framework\TestCase;
-use Framework\Http\Request;
 
 class StupidRequestTest extends TestCase
 {
