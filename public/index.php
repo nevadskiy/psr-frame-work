@@ -1,13 +1,13 @@
 <?php
 
-use Zend\Diactoros\Response\SapiEmitter;
 use Zend\Diactoros\ServerRequestFactory;
-use Zend\Diactoros\Response\JsonResponse;
-use Framework\Http\Router\RouteCollection;
 use Framework\Http\Router\AuraRouterAdapter;
 use Framework\Http\Router\Exceptions\RequestNotMatchedException;
 use App\Http\Action;
 use Framework\Http\ActionResolver;
+use Framework\Http\Pipeline\Pipeline;
+use App\Http\Middleware;
+use Framework\Http\Application;
 
 
 chdir(dirname(__DIR__));
@@ -55,58 +55,50 @@ session_start();
 |--------------------------------------------------------------------------
 */
 
-//$routes = new RouteCollection();
-//
-//$routes->get('home', '/', Action\HomeAction::class);
-//$routes->get('about', '/about', Action\AboutAction::class);
-//$routes->get('blog', '/blog', Action\Blog\IndexAction::class);
-//$routes->get('blog_show', '/blog/{id}', Action\Blog\ShowAction::class, ['id' => '\d+']);
-//$router = new \Framework\Http\Router\SimpleRouter($routes);
-//$resolver = new ActionResolver();
+$params = [
+    'debug' => true,
+    'users' => ['admin' => 'password']
+];
 
 $aura = new Aura\Router\RouterContainer();
 $routes = $aura->getMap();
 
 $routes->get('home', '/', Action\HomeAction::class);
 $routes->get('about', '/about', Action\AboutAction::class);
+$routes->get('cabinet', '/cabinet', [
+    new Middleware\BasicAuthActionMiddleware($params['users']),
+    Action\CabinetAction::class,
+]);
 $routes->get('blog', '/blog', Action\Blog\IndexAction::class);
 $routes->get('blog_show', '/blog/{id}', Action\Blog\ShowAction::class)->tokens(['id' => '\d+']);
 
 $router = new AuraRouterAdapter($aura);
 $resolver = new ActionResolver();
+$app = new Application($resolver, new Middleware\NotFoundHandler());
+
+$app->pipe(new Middleware\ErrorHandlerMiddleware($params['debug']))
+    ->pipe(Middleware\ProfilerMiddleware::class)
+    ->pipe(Middleware\CredentialsMiddleware::class);
+
 
 /*
 |--------------------------------------------------------------------------
 | Running
 |--------------------------------------------------------------------------
 */
+
 $request = ServerRequestFactory::fromGlobals();
 $request = $request->withAttribute('lang', getLang($_GET, $_COOKIE, $_SESSION, $_SERVER));
 
 try {
     $result = $router->match($request);
-
     foreach ($result->getAttributes() as $attribute => $value) {
         $request = $request->withAttribute($attribute, $value);
     }
+    $app->pipe($result->getHandler());
+} catch (RequestNotMatchedException $e){}
 
-    $action = $resolver->resolve($result->getHandler());
-    $response = $action($request);
-} catch (RequestNotMatchedException $e) {
-    $response = new JsonResponse(['error' => 'Undefined page'], 404);
-}
-
-/*
-|--------------------------------------------------------------------------
-| Postprocessing
-|--------------------------------------------------------------------------
-*/
-
-// Echo is bad implementation for response because
-// we can't add any headers to response and modify it later.
-
-//$response = (new HtmlResponse($contentBody))
-//    ->withHeader('X-Developer', 'Vitasik');
+$response = $app->run($request);
 
 /*
 |--------------------------------------------------------------------------
@@ -114,5 +106,7 @@ try {
 |--------------------------------------------------------------------------
 */
 
-$sender = new SapiEmitter();
+// php echo function is bad implementation for response because
+// we can't add any headers to response and modify it later.
+$sender = new \Zend\HttpHandlerRunner\Emitter\SapiEmitter();
 $sender->emit($response);

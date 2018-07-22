@@ -21,7 +21,7 @@ class HomeActionTest extends TestCase
     }
 
     /** @test */
-    public function it_geetings_john(): void
+    public function it_greetings_john(): void
     {
         $action = new HomeAction();
         $request = (new ServerRequest())

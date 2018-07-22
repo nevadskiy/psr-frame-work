@@ -4,6 +4,7 @@ namespace Framework\Http\Router;
 
 use Aura\Router\Exception\RouteNotFound;
 use Aura\Router\RouterContainer;
+use Framework\Http\Router\Exceptions\RequestNotMatchedException;
 use Framework\Http\Router\Exceptions\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,6 +23,8 @@ class AuraRouterAdapter implements Router
         if ($route = $matcher->match($request)) {
             return new Result($route->name, $route->handler, $route->attributes);
         }
+
+        throw new RequestNotMatchedException($request);
     }
 
     public function generate(string $name, array $params = []): string
