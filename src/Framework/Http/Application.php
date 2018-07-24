@@ -26,7 +26,7 @@ class Application extends Pipeline
      * @param callable $middleware
      * @return Application
      */
-    public function pipe($middleware): Application
+    public function pipe($middleware): Pipeline
     {
         parent::pipe($this->resolver->resolve($middleware));
 

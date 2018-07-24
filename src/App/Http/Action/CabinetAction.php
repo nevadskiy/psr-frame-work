@@ -10,8 +10,6 @@ class CabinetAction
 {
     public function __invoke(ServerRequestInterface $request)
     {
-        throw new \RuntimeException();
-
         $username = $request->getAttribute(BasicAuthActionMiddleware::ATTRIBUTE);
 
         return new HtmlResponse('I am logged in as ' . $username);
