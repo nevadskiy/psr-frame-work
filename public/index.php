@@ -10,6 +10,7 @@ use Framework\Http\Middleware\RouteMiddleware;
 use Framework\Http\Middleware\DispatchMiddleware;
 
 chdir(dirname(__DIR__));
+
 require 'vendor/autoload.php';
 
 /*
@@ -33,18 +34,18 @@ class Container
 {
     private $definitions = [];
 
-    public function get($name)
+    public function get($id)
     {
-        if (!array_key_exists($name, $this->definitions)) {
-            throw new \InvalidArgumentException('Undefined parameter "'.$name.'"');
+        if (!array_key_exists($id, $this->definitions)) {
+            throw new \InvalidArgumentException('Undefined parameter "'.$id.'"');
         }
 
-        return $this->definitions[$name];
+        return $this->definitions[$id];
     }
 
-    public function set($name, $value): void
+    public function set($id, $value): void
     {
-        $this->definitions[$name] = $value;
+        $this->definitions[$id] = $value;
     }
 }
 
@@ -52,8 +53,7 @@ $container = new Container();
 
 $container->set('debug', true);
 $container->set('users', ['admin' => 'password']);
-$container->set('db', 'new PDO');
-//$container->set('db', new \PDO('mysql:localhost;dbname=db', 'root', 'secret'));
+$container->set('db', new \PDO('sqlite:database/database.sqlite'));
 
 /*
 |--------------------------------------------------------------------------
