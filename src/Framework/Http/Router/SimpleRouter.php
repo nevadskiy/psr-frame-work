@@ -15,6 +15,11 @@ class SimpleRouter implements Router
         $this->routes = $routes;
     }
 
+    public function addRoute($name, $path, $handler, array $methods, array $options): void
+    {
+        // TODO: Implement addRoute() method.
+    }
+
     public function match(ServerRequestInterface $request): Result
     {
         foreach ($this->routes->getRoutes() as $route) {

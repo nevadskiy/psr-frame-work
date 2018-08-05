@@ -22,4 +22,13 @@ interface Router
      * @return string
      */
     public function generate(string $name, array $attributes = []): string;
+
+    /**
+     * @param $name
+     * @param $path
+     * @param $handler
+     * @param array $methods
+     * @param array $options
+     */
+    public function addRoute($name, $path, $handler, array $methods, array $options): void;
 }

@@ -35,4 +35,47 @@ class ContainerTest extends TestCase
 
         $container->get('email');
     }
+
+    /** @test */
+    public function it_store_closure()
+    {
+        $container = new Container();
+
+        $container->set($name = 'name', function() {
+            return new \stdClass();
+        });
+
+        $this->assertNotNull($value = $container->get($name));
+        $this->assertInstanceOf(\stdClass::class, $value);
+    }
+
+    /** @test */
+    public function it_cache_closures()
+    {
+        $container = new Container();
+
+        $container->set($name = 'name', function() {
+            return new \stdClass();
+        });
+
+        $this->assertNotNull($value1 = $container->get($name));
+        $this->assertNotNull($value2 = $container->get($name));
+        $this->assertEquals($value1, $value2);
+    }
+
+    /** @test */
+    public function it_has_access_to_itself_in_closures()
+    {
+        $container = new Container();
+
+        $container->set('param', $value = 15);
+        $container->set($name = 'name', function(Container $container) {
+            $object = new \stdClass();
+            $object->param = $container->get('param');
+            return $object;
+        });
+
+        $this->assertObjectHasAttribute('param', $object = $container->get($name));
+        $this->assertEquals($value, $object->param);
+    }
 }

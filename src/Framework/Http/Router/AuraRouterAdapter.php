@@ -3,6 +3,7 @@
 namespace Framework\Http\Router;
 
 use Aura\Router\Exception\RouteNotFound;
+use Aura\Router\Route;
 use Aura\Router\RouterContainer;
 use Framework\Http\Router\Exceptions\RequestNotMatchedException;
 use Framework\Http\Router\Exceptions\RouteNotFoundException;
@@ -35,5 +36,37 @@ class AuraRouterAdapter implements Router
         } catch (RouteNotFound $e) {
             throw new RouteNotFoundException($name, $params, $e);
         }
+    }
+
+    public function addRoute($name, $path, $handler, array $methods, array $options): void
+    {
+        $map = $this->aura->getMap();
+
+        $route = new Route();
+        $route->name($name);
+        $route->path($path);
+        $route->handler($handler);
+
+        foreach($options as $key => $value) {
+            switch ($key) {
+                case 'tokens':
+                    $route->tokens($value);
+                    break;
+                case 'defaults':
+                    $route->defaults($value);
+                    break;
+                case 'wildcard':
+                    $route->wildcard($value);
+                    break;
+                default:
+                    throw new \InvalidArgumentException('Undefined option "'. $key .'"');
+            }
+        }
+
+        if ($methods) {
+            $route->allows($methods);
+        }
+
+        $map->addRoute($route);
     }
 }

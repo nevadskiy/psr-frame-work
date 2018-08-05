@@ -2,7 +2,7 @@
 
 namespace Framework\Container;
 
-class Container
+class ArrayableContainer implements \ArrayAccess
 {
     private $services = [];
 
@@ -36,5 +36,26 @@ class Container
         }
 
         $this->services[$key] = $value;
+    }
+
+    public function offsetExists($offset)
+    {
+        return !! $this->get($offset);
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        $this->set($offset, $value);
+    }
+
+    public function offsetUnset($offset)
+    {
+        unset($this->cache[$offset]);
+        unset($this->services[$offset]);
     }
 }
