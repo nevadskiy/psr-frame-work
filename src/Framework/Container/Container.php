@@ -9,7 +9,7 @@ class Container
     public function get($id)
     {
         if (!array_key_exists($id, $this->definitions)) {
-            throw new \InvalidArgumentException('Undefined parameter "'.$id.'"');
+            throw new ServiceNotFoundException('Undefined parameter "'.$id.'"');
         }
 
         return $this->definitions[$id];
