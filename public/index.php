@@ -2,6 +2,7 @@
 
 use Zend\Diactoros\ServerRequestFactory;
 use Framework\Http\Application;
+use Framework\Container\Container;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -22,25 +23,11 @@ require 'vendor/autoload.php';
 */
 session_start();
 
-$container = require 'config/container.php';
+$container = new Container(require 'config/bootstrap.php');
 $app = $container->get(Application::class);
 
 require 'config/pipeline.php';
 require 'config/routes.php';
-
-$class = \Framework\Http\Middleware\RouteMiddleware::class;
-
-$reflection = new ReflectionClass($class);
-
-$arguments = [];
-
-if (($constructor = $reflection->getConstructor()) !== null) {
-    foreach ($constructor->getParameters() as $param) {
-        $arguments[] = $container->get($param->getClass()->getName());
-    }
-}
-
-$middleware = new $class(...$arguments);
 
 /*
 |--------------------------------------------------------------------------

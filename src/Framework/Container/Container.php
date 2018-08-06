@@ -11,6 +11,11 @@ class Container implements ContainerInterface
 
     private $cache = [];
 
+    public function __construct(array $config = [])
+    {
+        $this->services = $config;
+    }
+
     public function get($id)
     {
         if (array_key_exists($id, $this->cache)) {

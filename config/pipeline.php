@@ -1,12 +1,11 @@
 <?php
 
-use App\Http\Middleware;
-use Framework\Http\Middleware\RouteMiddleware;
-use Framework\Http\Middleware\DispatchMiddleware;
+use App\Http\Middleware as AppMiddleware;
+use Framework\Http\Middleware as CoreMiddleware;
 
-$app->pipe(Middleware\ProfilerMiddleware::class);
-$app->pipe(Middleware\ErrorHandlerMiddleware::class);
-$app->pipe(Middleware\CredentialsMiddleware::class);
-$app->pipe(Middleware\SetLocaleMiddleware::class);
-$app->pipe(RouteMiddleware::class);
-$app->pipe(DispatchMiddleware::class);
+$app->pipe(AppMiddleware\ProfilerMiddleware::class);
+$app->pipe(AppMiddleware\ErrorHandlerMiddleware::class);
+$app->pipe(AppMiddleware\CredentialsMiddleware::class);
+$app->pipe(AppMiddleware\SetLocaleMiddleware::class);
+$app->pipe(CoreMiddleware\RouteMiddleware::class);
+$app->pipe(CoreMiddleware\DispatchMiddleware::class);
