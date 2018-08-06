@@ -11,7 +11,6 @@ use Framework\Http\Middleware\DispatchMiddleware;
 use Framework\Container\Container;
 
 // Factories of services
-
 $container->set(Application::class, function(Container $container) {
     return new Application(
         $container->get(ActionResolver::class),
@@ -35,8 +34,8 @@ $container->set(Router::class, function() {
     return new AuraRouterAdapter(new Aura\Router\RouterContainer());
 });
 
-$container->set(ActionResolver::class, function() {
-    return new ActionResolver();
+$container->set(ActionResolver::class, function(Container $container) {
+    return new ActionResolver($container);
 });
 
 $container->set(Middleware\ErrorHandlerMiddleware::class, function(Container $container) {

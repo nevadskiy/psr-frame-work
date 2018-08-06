@@ -2,11 +2,19 @@
 
 namespace Framework\Http;
 
+use Framework\Container\Container;
 use Framework\Http\Pipeline\Pipeline;
 use Psr\Http\Message\ServerRequestInterface;
 
 class ActionResolver
 {
+    protected $container;
+
+    public function __construct(Container $container)
+    {
+        $this->container = $container;
+    }
+
     public function resolve($handler): callable
     {
         if (\is_array($handler)) {
@@ -15,7 +23,7 @@ class ActionResolver
 
         if (\is_string($handler)) {
             return function(ServerRequestInterface $request, callable $next) use ($handler) {
-                $object = new $handler();
+                $object = $this->container->get($handler);
                 return $object($request, $next);
             };
         }

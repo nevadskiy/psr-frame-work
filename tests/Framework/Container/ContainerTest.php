@@ -41,7 +41,7 @@ class ContainerTest extends TestCase
     {
         $container = new Container();
 
-        $container->set($name = 'name', function() {
+        $container->set($name = 'name', function () {
             return new \stdClass();
         });
 
@@ -54,7 +54,7 @@ class ContainerTest extends TestCase
     {
         $container = new Container();
 
-        $container->set($name = 'name', function() {
+        $container->set($name = 'name', function () {
             return new \stdClass();
         });
 
@@ -69,7 +69,7 @@ class ContainerTest extends TestCase
         $container = new Container();
 
         $container->set('param', $value = 15);
-        $container->set($name = 'name', function(Container $container) {
+        $container->set($name = 'name', function (Container $container) {
             $object = new \stdClass();
             $object->param = $container->get('param');
             return $object;
@@ -77,5 +77,80 @@ class ContainerTest extends TestCase
 
         $this->assertObjectHasAttribute('param', $object = $container->get($name));
         $this->assertEquals($value, $object->param);
+    }
+
+    /** @test */
+    public function it_returns_instances()
+    {
+        $container = new Container();
+
+        $this->assertInstanceOf(\stdClass::class, $container->get(\stdClass::class));
+    }
+
+    /** @test */
+    public function autowiring()
+    {
+        $container = new Container();
+
+        $outer = $container->get(Outer::class);
+
+        $this->assertNotNull($outer);
+        $this->assertInstanceOf(Outer::class, $outer);
+
+        $this->assertNotNull($middle = $outer->middle);
+        $this->assertInstanceOf(Middle::class, $middle);
+
+        $this->assertNotNull($inner = $middle->inner);
+        $this->assertInstanceOf(Inner::class, $inner);
+    }
+
+    /** @test */
+    public function it_autowire_class_with_default_params()
+    {
+        $container = new Container();
+
+        $scalar = $container->get(ScalarWithArrayAndDefault::class);
+
+        $this->assertNotNull($scalar);
+        $this->assertNotNull($inner = $scalar->inner);
+        $this->assertInstanceOf(Inner::class, $inner);
+
+        $this->assertEquals(10, $scalar->default);
+    }
+}
+
+class Outer
+{
+    public $middle;
+
+    public function __construct(Middle $middle)
+    {
+        $this->middle = $middle;
+    }
+}
+
+class Middle
+{
+    public $inner;
+
+    public function __construct(Inner $inner)
+    {
+        $this->inner = $inner;
+    }
+}
+
+class Inner {}
+
+class ScalarWithArrayAndDefault
+{
+    public $inner;
+    public $array;
+    public $default;
+
+    public function __construct(Inner $inner, array $array, $default = 10)
+    {
+        $this->inner = $inner;
+        $this->array = $array;
+        $this->default = $default;
     }
 }
